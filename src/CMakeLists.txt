@@ -2,6 +2,7 @@
 project(HIPRT-AO)
 set(target HIPRT-AO)
 
+
 set(sources
     main.cpp
     assert.h
@@ -19,12 +20,12 @@ set(sources
     RenderCases.h
     Aabb.h 
     DisplayWindow.h
-    DisplayWindow.cpp)
+    DisplayWindow.cpp
+    )
 
 #select debug or release 
 SET(HIPRT_DLL  $<IF:$<CONFIG:Debug>,${HIPRT_BINDIR}/hiprt0200364D.dll,${HIPRT_BINDIR}/hiprt0200364.dll>)
 set(HIPRT_LIB  $<IF:$<CONFIG:Debug>,${HIPRT_BINDIR}/hiprt0200364D.lib,${HIPRT_BINDIR}/hiprt0200364.lib>)
-
 
 add_executable(${target} ${sources})
 set_property(TARGET ${target} PROPERTY CXX_STANDARD 20)

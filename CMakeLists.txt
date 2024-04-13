@@ -35,6 +35,8 @@ FetchContent_Declare(tinyobj
     GIT_TAG v2.0.6
 )
 
+set(GLAD_PROFILE "core"	CACHE STRING "OpenGL profile")
+set(GLAD_GENERATOR "c"	CACHE STRING "Language to generate the binding for")
 FetchContent_MakeAvailable(glad)
 
 

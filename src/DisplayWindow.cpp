@@ -1,5 +1,6 @@
 #include "DisplayWindow.h"
 
+
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
@@ -30,18 +31,19 @@ void Window::PollEvents() const
     glfwPollEvents();
 }
 
+
 MainDisplayWindow::MainDisplayWindow()
 {
     int result = glfwInit();
     HIP_ASSERT(GLFW_TRUE == result, "Failed to init GLFWWindow");
     glfwSetErrorCallback(glfw_error_callback);
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 
     context = std::make_unique<Window>(960, 540, "RT Imagination");
     glfwMakeContextCurrent(context->nativeWindow.get());
-
+  
     HIP_ASSERT(context->nativeWindow != nullptr, "Failed to create context");
 
     // Setup Dear ImGui context

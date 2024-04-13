@@ -1,14 +1,9 @@
 #pragma once
 
 #include <hip/hip_vector_types.h>
+#include <include/GLFW/glfw3.h> // Will drag system OpenGL headers
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
-#include "imgui.h"
-#define GL_SILENCE_DEPRECATION
-#if defined(IMGUI_IMPL_OPENGL_ES2)
-#    include <GLES2/gl2.h>
-#endif
-#include <include/GLFW/glfw3.h> // Will drag system OpenGL headers
 #include <string>
 #include "assert.h"
 #include <memory>
