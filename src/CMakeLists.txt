@@ -49,6 +49,7 @@ if(WIN32)
     target_link_libraries(${target} PRIVATE ${HIPRT_LIB})
     target_link_libraries(${target} PRIVATE glfw)
     target_link_libraries(${target} PRIVATE imgui)
+    target_link_libraries(${target} PRIVATE glad)
 
    
     add_custom_command(TARGET ${target} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${HIPRT_DLL} ${CMAKE_BINARY_DIR}/$<CONFIG>/)

@@ -1,9 +1,14 @@
 #pragma once
 
 #include <hip/hip_vector_types.h>
+// GLAD
+#include <glad/glad.h>
+
 #include <include/GLFW/glfw3.h> // Will drag system OpenGL headers
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
+
+
 #include <string>
 #include "assert.h"
 #include <memory>

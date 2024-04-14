@@ -428,6 +428,32 @@ extern "C" __global__ void SimpleMeshIntersectionKernelCamera(hiprtGeometry geom
     image[index * 4 + 3] = 255;
 }
 
+extern "C" __global__ void SimpleMeshIntersectionKernelCameraTx(hiprtGeometry geom, hipTextureObject_t textureObject, int2 resolution, const Camera camera)
+{
+    const uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
+    const uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
+    const uint32_t index = x + y * resolution.x;
+
+    uint32_t seed = tea<16>(x + y * resolution.x, 0).x;
+
+    hiprtRay ray = generateRay(x, y, resolution, camera, seed, false);
+
+    hiprtGeomTraversalClosest tr(geom, ray);
+    hiprtHit hit = tr.getNextHit();
+
+    uint8_t ix = hit.hasHit() ? (static_cast<float>(x) / resolution.x) * 255 : 0;
+    uint8_t iy = hit.hasHit() ? (static_cast<float>(y) / resolution.y) * 255 : 0;
+
+    /*texture*/
+
+   /* image[index * 4 + 0] = ix;
+    image[index * 4 + 1] = iy;
+    image[index * 4 + 2] = 0;
+    image[index * 4 + 3] = 255;*/
+}
+
+
+
 extern "C" __global__ void __launch_bounds__( 64 ) AoRayKernel(
 	hiprtScene			   scene,
 	uint8_t*			   image,

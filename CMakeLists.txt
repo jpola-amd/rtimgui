@@ -30,14 +30,19 @@ FetchContent_Declare(tinyobj
     GIT_TAG release
 )
 
- FetchContent_Declare(glad 
-    GIT_REPOSITORY https://github.com/Dav1dde/glad.git 
-    GIT_TAG v2.0.6
-)
 
+FetchContent_Declare(
+	glad
+	GIT_REPOSITORY https://github.com/Dav1dde/glad.git
+	GIT_TAG v0.1.36
+	)
+	
 set(GLAD_PROFILE "core"	CACHE STRING "OpenGL profile")
+
 set(GLAD_GENERATOR "c"	CACHE STRING "Language to generate the binding for")
-FetchContent_MakeAvailable(glad)
+
+#FetchContent_MakeAvailable(glad)
+
 
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -54,6 +59,7 @@ FetchContent_MakeAvailable(
     stb_image
     tinyobj
     glfw
+    glad
 )
 
 FetchContent_Declare(imgui

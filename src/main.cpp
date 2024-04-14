@@ -61,6 +61,26 @@ struct OglTexture
     int GetDataSize() { return width * height * nChannels; };
 };
 
+// Keeps the opengl stuff
+struct Renderer
+{
+    GLuint colorBuffer;
+
+    Renderer()
+    {
+        GLuint buffers[1];
+        
+        glGenBuffers(std::size(buffers), buffers);
+        colorBuffer = buffers[0];
+        
+    }
+
+    ~Renderer()
+    {
+
+    }
+
+};
 
 
 bool LoadTextureFromFile(const char* filename, OglTexture& texture)
@@ -82,8 +102,8 @@ bool LoadTextureFromFile(const char* filename, OglTexture& texture)
     // Setup filtering parameters for display
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP); // This is required on WebGL for non power-of-two textures
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP); // Same
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
 
     // Upload pixels into texture
 #if defined(GL_UNPACK_ROW_LENGTH) && !defined(__EMSCRIPTEN__)
@@ -95,17 +115,7 @@ bool LoadTextureFromFile(const char* filename, OglTexture& texture)
     return true;
 }
 
-void RegisterTexture(const OglTexture& texture, hipGraphicsResource_t& resource)
-{
-    // Register this image for sharing with CUDA. cudaGraphicsGLRegisterImage()
-    // supports all texture formats with 1, 2, or 4 components and an internal
-    // type of float (e.g. GL_RGBA_FLOAT32) and unnormalized integer (e.g.
-    // GL_RGBA8UI). It does not currently support normalized integer formats (e.g.
-    // GL_RGBA8). Please note that since GL_RGBA8UI is an OpenGL 3.0 texture
-    // format, it can only be written by shaders, not the fixed function pipeline.
-    hipError_t result = hipGraphicsGLRegisterImage(&resource, texture.textureID, GL_TEXTURE_2D, hipGraphicsRegisterFlagsNone);
-    HIP_ASSERT(result == hipSuccess, "failed to register texture ");
-}
+
 #include "RenderCases.h"
 
 bool GetHipGlDevice(int& hipDevice)
@@ -159,7 +169,6 @@ int main(int argc, char const* argv[])
 
     hiprtContext rtContext{nullptr};
     HIP_ASSERT(hiprtCreateContext(hiprtApiVersion, input, rtContext) == hiprtSuccess, "hiprtCreateContext");
-
 
     /* HIPRTSTUFF
     std::vector<TriangleMesh> meshes;
@@ -229,7 +238,10 @@ int main(int argc, char const* argv[])
 
     hipArray* hipTexure{nullptr};
     hipGraphicsResource_t pHipTexResource;
-    RegisterTexture(texture, pHipTexResource);
+    hipError_t result = hipGraphicsGLRegisterImage(&pHipTexResource, texture.textureID, GL_TEXTURE_2D, hipGraphicsRegisterFlagsNone);
+    HIP_ASSERT(result == hipSuccess, "failed to register texture ");
+
+
 
 
     while (!MainWindow.ShouldClose())
@@ -237,8 +249,31 @@ int main(int argc, char const* argv[])
         MainWindow.PollEvents();
         MainWindow.Update();
 
+        result = hipGraphicsMapResources(1, &pHipTexResource, stream);
+        hipArray_t array{ nullptr };
+        result = hipGraphicsSubResourceGetMappedArray(&array, pHipTexResource, 0, 0);
+
+        // create a cudaTextureObject
+        hipResourceDesc textureResource;
+        memset(&textureResource, 0, sizeof(hipResourceDesc));
+        textureResource.resType = hipResourceTypeArray;
+        textureResource.res.array.array = array;
+
+        hipTextureDesc textureDescriptor;
+        memset(&textureDescriptor, 0, sizeof(hipTextureDesc));
+        textureDescriptor.normalizedCoords = false;
+        textureDescriptor.filterMode = hipFilterModePoint;
+        textureDescriptor.addressMode[0] = hipAddressModeWrap;
+        textureDescriptor.readMode = hipReadModeElementType;
+
+        hipTextureObject_t texObject;
+        result = hipCreateTextureObject(&texObject, &textureResource, &textureDescriptor, nullptr);
+
         /*launchKernel(kernel, width, height, kernel_args, stream, blockWidth, blockHeight);
         HIP_ASSERT(hipStreamSynchronize(stream) == hipSuccess, "stream sync");*/
+
+        result = hipGraphicsUnmapResources(1, &pHipTexResource, stream);
+
 
         ImGui::Begin("OpenGL Texture Text");
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();

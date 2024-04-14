@@ -44,6 +44,12 @@ MainDisplayWindow::MainDisplayWindow()
     context = std::make_unique<Window>(960, 540, "RT Imagination");
     glfwMakeContextCurrent(context->nativeWindow.get());
   
+
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        std::cerr << "Failed to initialize OpenGL context" << std::endl;
+    }
+
     HIP_ASSERT(context->nativeWindow != nullptr, "Failed to create context");
 
     // Setup Dear ImGui context
@@ -66,6 +72,7 @@ MainDisplayWindow::~MainDisplayWindow()
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
+    glfwTerminate();
 }
 
 bool MainDisplayWindow::ShouldClose()
